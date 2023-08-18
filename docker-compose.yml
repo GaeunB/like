@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  api:
+    container_name: backend
+    build:
+      dockerfile: Dockerfile
+      context: .
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - s3
+    ports:
+      - 3000:3000
+
+  postgres:
+    container_name: postgresDB
+    image: postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - 5432:5432
+
+  s3:
+    image: minio/minio
+    ports:
+      - '${MINIO_PORT}:${MINIO_PORT}'
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: '${MINIO_ROOT_USER}'
+      MINIO_ROOT_PASSWORD: '${MINIO_ROOT_PASSWORD}'
+    volumes:
+      - ./storage/minio:/data
+    command: server /data --console-address ":9001"
